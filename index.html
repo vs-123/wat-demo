@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WAT</title>
+</head>
+<body>
+    <script>
+        const memory = new WebAssembly.Memory({
+            initial: 1,
+        });
+
+        const wasmImports = {
+            console: {
+                log_string: (offset, length) => {
+                    const bytes = new Uint8Array(memory.buffer, offset, length);
+                    const string = new TextDecoder("utf8").decode(bytes);
+                    console.log(string);
+                },
+                log: console.log,
+            },
+            js: {
+                mem: memory,
+            },
+        };
+
+        fetch("./index.wasm")
+        .then((response) => response.arrayBuffer())
+        .then((bytes) => {
+            const mod = new WebAssembly.Module(bytes);
+            const instance = new WebAssembly.Instance(mod, wasmImports);
+            instance.exports.main();
+        })
+    </script>
+</body>
+</html>
